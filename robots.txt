@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /app/Controllers/
+Disallow: /app/model/
+Disallow: /app/views/
+Disallow: /src/core/
+Disallow: /src/modules/
+Disallow: /src/plugins/
+Disallow: /public/js/

@@ -1,0 +1,23 @@
+# Protect all directories
+Options -Indexes
+
+# Enable URL rewriting
+RewriteEngine On
+
+# Protect the "all" directory
+<Directory /src/>
+  Deny from all
+</Directory>
+<Directory /app/>
+  Deny from all
+</Directory>
+
+
+# Remove .php extension from URLs
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
+
+# Remove .html extension from URLs
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^([^\.]+)$ $1.html [NC,L]
+

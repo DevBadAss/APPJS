@@ -1,0 +1,20 @@
+{
+    "name": "{{The Name of Your Progressive Web App}}",
+    "short_name": "{{A shorter name for the PWA}}",
+    "start_url": "{{The URL where the PWA starts}}",
+    "display": "{{the display mode for the PWA e.g fullscreen, standalone, minimal-ui, browser}}",
+    "theme_color": "{{the color of the status bar, address bar, or task bar (in hex format)}}",
+    "background_color": "{{the background color of the splash screen (in hex format)}}",
+    "icons": [{
+        "src": "",
+        "type": "",
+        "sizes": ""
+    }],
+    "related_applications": [{
+        "platform": "",
+        "url": ""
+    }],
+    "prefer_related_applications": true,
+    "description": "{{a description for the PWA }}",
+    "lang": "{{Primary language for the PWA}}"
+}
