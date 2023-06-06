@@ -1,56 +1,54 @@
 /**
  * BlazeView: A Lightweight, User-Friendly and Fast JavaScript Template Engine
+ * A JavaScript template engine class that supports multiple conditionals and loops.
  * @module BlazeView
  * @author Olawoore Emmanuel Collins
  * @link https://github.com/devbadass
  */
-
 class BlazeView {
-    constructor() {}
+  constructor() {}
 
+  /**
+   * Renders the template with the provided data.
+   * @param {Object} data - The data object to populate the template.
+   * @type {string} template - The template string to be rendered
+   * @returns {string} - The rendered template.
+   */
+  static render(template, data) {
     /**
-     * @param {String} Template 
-     * @param {Object} data 
-     * @returns 
+     * Regular expression to match the variables in the template.
+     * @type {RegExp}
      */
-    static render(Template, data) {
-        let template = Template;
+    const regex = /\{\{(.*?)\}\}/g;
+    let renderedTemplate = template;
 
-        // replaces {{key}} with value
-        for (let key in data) {
-            const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'gi');
-            template = template.replace(regex, data[key]);
+    // Replace conditionals
+    renderedTemplate = renderedTemplate.replace(/\{\{if (.*?)\}\}(.*?)\{\{endif\}\}/gs, (match, condition, content) => {
+      return data[condition] ? content.trim() : '';
+    });
+
+    // Replace loops
+    renderedTemplate = renderedTemplate.replace(/\{\{foreach (.*?)\}\}(.*?)\{\{endforeach\}\}/gs, (match, arrayName, content) => {
+      let result = '';
+      if (Array.isArray(data[arrayName])) {
+        const array = data[arrayName];
+        for (let i = 0; i < array.length; i++) {
+          const item = array[i];
+          const itemData = { ...item, ...data };
+          result += BlazeView.render(content, itemData);
         }
+      }
+      return result;
+    });
 
-        //  replace {{#if key}}...{{/if}}
-        const ifRegex = /{{#if\s*([\w\.]+)\s*}}([\s\S]*?){{\/if}}/gi;
-        let match;
-        while ((match = ifRegex.exec(template))) {
-            const [matchString, key, innerTemplate] = match;
-            if (!data[key]) {
-                template = template.replace(matchString, '');
-            } else {
-                const regex = new RegExp(matchString, 'gi');
-                template = template.replace(regex, innerTemplate.trim());
-            }
-        }
+    // Replace variables
+    renderedTemplate = renderedTemplate.replace(regex, (match, key) => {
+      return data[key] || '';
+    });
 
-
-        // replace {{#eeach items}}...{{/each}}
-        const eachRegex = /{{#each\s*([\w\.]+)\s*}}([\s\S]*?){{\/each}}/gi;
-        while ((match = eachRegex.exec(template))) {
-            const [matchString, key, innerTemplate] = match;
-            const items = data[key];
-            let listOutput = '';
-            for (let item of items) {
-                listOutput += BlazeView.render(innerTemplate, item);
-            }
-            const regex = new RegExp(matchString, 'gi');
-            template = template.replace(regex, listOutput);
-        }
-
-        return template;
-    }
+    return renderedTemplate;
+  }
 }
+
 
 export default BlazeView;
