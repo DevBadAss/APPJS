@@ -19,6 +19,9 @@ self.addEventListener("install", (event) => {
         caches.open(CACHE_NAME)
         .then((cache) => {
             cache.addAll(CACHE_URLS);
+        })
+        .then(function() {
+            self.skipWaiting(); // Activate the new service worker immediately
         }).catch((err) => {
             console.error(err);
         })
@@ -33,14 +36,31 @@ self.addEventListener("install", (event) => {
  * the requested URL and caches it for offline use.
  */
 
-self.addEventListener("fetch", (event) => {
-    event.waitUntil(
+self.addEventListener('fetch', function(event) {
+    event.respondWith(
         caches.match(event.request)
-        .then((response) => {
-            response || fetch(event.request);
-        })
-        .catch((err) => {
-            console.error(err);
+        .then(function(response) {
+            if (response) {
+                return response; // Return cached response if available
+            } else {
+                // Fetch from network
+                return fetch(event.request)
+                    .then(function(networkResponse) {
+                        const clonedResponse = networkResponse.clone(); // Clone the network response
+
+                        // Cache the cloned network response for future use
+                        caches.open(CACHE_NAME)
+                            .then(function(cache) {
+                                cache.put(event.request, clonedResponse);
+                            });
+
+                        return networkResponse; // Return the original network response
+                    })
+                    .catch(function(error) {
+                        console.error('Error fetching:', error);
+                        // Handle fetch errors
+                    });
+            }
         })
     );
 });
