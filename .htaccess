@@ -1,23 +1,18 @@
-# Protect all directories
-Options -Indexes
-
 # Enable URL rewriting
 RewriteEngine On
-
-# Protect the "all" directory
-<Directory /src/>
-  Deny from all
-</Directory>
-<Directory /app/>
-  Deny from all
-</Directory>
-
+RewriteBase /
 
 # Remove .php extension from URLs
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME}.php -f
-RewriteRule ^([^\.]+)$ $1.php [NC,L]
+RewriteRule ^(.*)$ $1.php [L]
 
 # Remove .html extension from URLs
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME}.html -f
-RewriteRule ^([^\.]+)$ $1.html [NC,L]
+RewriteRule ^(.*)$ $1.html [L]
 
+# Route all requests to your framework's front controller (e.g., index.php)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
