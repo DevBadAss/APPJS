@@ -31,10 +31,10 @@ class APPRouter {
 
     navigate() {
         const {
-            pathname
+            hash
         } = window.location;
         for (let i = 0; i < this.routes.length; i++) {
-            if (this.routes[i].url === pathname) {
+            if (this.routes[i].url === hash) {
                 this.app.render_view(this.routes[i].view);
                 return true;
             }
@@ -47,7 +47,7 @@ class APPRouter {
      */
 
     get(route) {
-        window.location.pathname = route;
+        window.location.hash = route;
     }
 }
 
