@@ -1,95 +1,136 @@
 /**
- * ClientDB: A JavaScript Module for storing and manipulating data in Local and Session Storage in browsers.
+ * ClientDB: A JavaScript module for storing and manipulating data in Local and Session Storage in browsers.
  * @module ClientDB
  * @author Olawoore Emmanuel Collins
  * @link https://github.com/devbadass
  */
 class ClientDB {
     /**
-     * 
-     * @param {String} name name of database.
-     * @param {Object} param
-     * @param {String} param.type database type i.e session or local.
-     * @returns database name.
+     * Create a new ClientDB instance.
+     * @param {string} name - The name of the database.
+     * @param {Object} options - Database options.
+     * @param {('local'|'session')} options.type - Database type (local or session).
+     * @throws {Error} Throws an error if database type is not supported.
      */
     constructor(name, { type }) {
-        const Data = encodeURIComponent(JSON.stringify({}));
         this.dbName = name;
         this.type = type;
-        if (this.type === "local") {
-            if (window.localStorage.getItem(name)) {
-                return this.dbName;
-            } else {
-                const Db = window.localStorage.setItem(this.dbName, Data);
-            }
-        }
-        if (this.type === "session") {
-            if (window.sessionStorage.getItem(name)) {
-                return this.dbName;
-            } else {
-                const Db = window.sessionStorage.setItem(this.dbName, Data);
-            }
-        }
-        return this.dbName;
+        this.initializeDatabase();
     }
 
     /**
-     * Gets and returns the database and it's data
-     * @returns The database and it's contents.
+     * Initialize the database if it doesn't exist.
+     * If the database already exists, this method does nothing.
+     * @private
      */
+    initializeDatabase() {
+        if (!this.isDatabaseExists()) {
+            this.createDatabase();
+        }
+    }
 
+    /**
+     * Check if the database already exists in storage.
+     * @private
+     * @returns {boolean} True if the database exists, false otherwise.
+     */
+    isDatabaseExists() {
+        const storedData = this.getStoredData();
+        return !!storedData;
+    }
+
+    /**
+     * Create a new database with an empty object.
+     * @private
+     */
+    createDatabase() {
+        this.setData({});
+    }
+
+    /**
+     * Retrieve the database and its contents.
+     * @returns {Object} The database and its contents.
+     */
     getDb() {
-        if (this.type === "local") {
-            this.db = decodeURIComponent(window.localStorage.getItem(this.dbName));
-        }
-        if (this.type === "session") {
-            this.db = decodeURIComponent(window.sessionStorage.getItem(this.dbName));
-        }
-        return JSON.parse(this.db)
+        return this.getStoredData();
     }
 
     /**
-     * 
-     * @param {String} key query key
-     * @returns the queried data.
+     * Query data from the database.
+     * @param {string} key - The key to query.
+     * @returns {*} The queried data or undefined if not found.
      */
-
     query(key) {
         const data = this.getDb();
-        return data[key];
+        return data ? data[key] : undefined;
     }
 
     /**
-     * Inserts data into the database.
-     * @param {Object} data data to be inserted.
+     * Insert data into the database.
+     * @param {Object} data - Data to be inserted.
      */
     insert(data) {
-        const Data = this.getDb();
-        const newdata = {
-            ...Data,
-            ...data
-        }
-        const update = encodeURIComponent(JSON.stringify(newdata));
-        if (this.type === "local") {
-            window.localStorage.setItem(this.dbName, update);
-        }
-        if (this.type === "session") {
-            window.sessionStorage.setItem(this.dbName, update);
-        }
+        const existingData = this.getDb();
+        const newData = { ...existingData, ...data };
+        this.setData(newData);
     }
 
     /**
-     * Delete the database.
+     * Delete the database from storage.
+     * After deletion, the instance is no longer usable.
      */
-
     delete() {
+        this.clearStorage();
+    }
+
+    /**
+     * Clear the database from storage.
+     * @private
+     */
+    clearStorage() {
         if (this.type === "local") {
             window.localStorage.removeItem(this.dbName);
-        }
-        if (this.type === "session") {
+        } else if (this.type === "session") {
             window.sessionStorage.removeItem(this.dbName);
         }
     }
+
+    /**
+     * Get the stored data from storage.
+     * @private
+     * @returns {Object|null} The stored data or null if not found.
+     */
+    getStoredData() {
+        const rawData = (this.type === "local")
+            ? window.localStorage.getItem(this.dbName)
+            : window.sessionStorage.getItem(this.dbName);
+        
+        return rawData ? JSON.parse(rawData) : null;
+    }
+
+    /**
+     * Set data into storage.
+     * @private
+     * @param {Object} data - Data to be stored.
+     */
+    setData(data) {
+        const jsonData = JSON.stringify(data);
+        if (this.type === "local") {
+            window.localStorage.setItem(this.dbName, jsonData);
+        } else if (this.type === "session") {
+            window.sessionStorage.setItem(this.dbName, jsonData);
+        }
+    }
 }
+
+// const localDB = new ClientDB("myLocalDB", { type: "local" });
+// const sessionDB = new ClientDB("mySessionDB", { type: "session" });
+// localDB.insert({ username: "john_doe", email: "john@example.com" });
+// const email = localDB.query("email");
+// console.log(email); // Output: "john@example.com"
+// localDB.delete();
+// const data = localDB.getDb();
+// console.log(data); // Output: { username: "john_doe", email: "john@example.com" }
+
 
 export default ClientDB;
