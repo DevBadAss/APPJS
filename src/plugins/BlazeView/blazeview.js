@@ -5,50 +5,73 @@
  * @author Olawoore Emmanuel Collins
  * @link https://github.com/devbadass
  */
+class BlazeView
+ */
 class BlazeView {
-  constructor() {}
-
   /**
-   * Renders the template with the provided data.
+   * Render a template with the provided data.
+   *
+   * @static
+   * @param {string} template - The template string.
    * @param {Object} data - The data object to populate the template.
-   * @type {string} template - The template string to be rendered
-   * @returns {string} - The rendered template.
+   * @returns {string} The rendered template.
+   * @throws {Error} If the template contains syntax errors.
+   * @example
+   * const template = "Hello, {{name}}! {{if age}}You are {{age}} years old.{{endif}}";
+   * const data = { name: "Alice", age: 30 };
+   * const rendered = BlazeView.render(template, data);
+   * console.log(rendered); // Output: "Hello, Alice! You are 30 years old."
    */
   static render(template, data) {
-    /**
-     * Regular expression to match the variables in the template.
-     * @type {RegExp}
-     */
-    const regex = /\{\{(.*?)\}\}/g;
-    let renderedTemplate = template;
-
-    // Replace conditionals
-    renderedTemplate = renderedTemplate.replace(/\{\{if (.*?)\}\}(.*?)\{\{endif\}\}/gs, (match, condition, content) => {
-      return data[condition] ? content.trim() : '';
-    });
-
-    // Replace loops
-    renderedTemplate = renderedTemplate.replace(/\{\{foreach (.*?)\}\}(.*?)\{\{endforeach\}\}/gs, (match, arrayName, content) => {
-      let result = '';
-      if (Array.isArray(data[arrayName])) {
-        const array = data[arrayName];
-        for (let i = 0; i < array.length; i++) {
-          const item = array[i];
-          const itemData = { ...item, ...data };
-          result += BlazeView.render(content, itemData);
+    try {
+      // Handle variables
+      const renderedTemplate = template.replace(/\{\{(.*?)\}\}/g, (_, key) => {
+        if (data.hasOwnProperty(key)) {
+          return data[key];
+        } else {
+          return '';
         }
-      }
-      return result;
-    });
+      });
 
-    // Replace variables
-    renderedTemplate = renderedTemplate.replace(regex, (match, key) => {
-      return data[key] || '';
-    });
+      // Handle conditionals
+      const withConditionals = renderedTemplate.replace(/\{\{if (.*?)\}\}(.*?)\{\{endif\}\}/gs, (match, condition, content) => {
+        return data[condition] ? content : '';
+      });
 
-    return renderedTemplate;
+      // Handle loops
+      const withLoops = withConditionals.replace(/\{\{foreach (.*?)\}\}(.*?)\{\{endforeach\}\}/gs, (match, arrayName, content) => {
+        if (Array.isArray(data[arrayName])) {
+          return data[arrayName].map(item => BlazeView.render(content, { ...item, ...data })).join('');
+        } else {
+          return '';
+        }
+      });
+
+      return withLoops;
+    } catch (error) {
+      throw new Error('Template rendering failed: ' + error.message);
+    }
   }
 }
 
 
+// const template = "Hello, {{name}}! {{if age}}You are {{age}} years old.{{endif}}{{foreach friends}}{{name}} is your friend.{{endforeach}}";
+// const data = {
+//   name: "Alice",
+//   age: 30,
+//   friends: [
+//     { name: "Bob" },
+//     { name: "Charlie" },
+//   ],
+// };
+
+// try {
+//   const rendered = BlazeView.render(template, data);
+//   console.log(rendered);
+// } catch (error) {
+//   console.error(error.message);
+// }
+
+
 export default BlazeView;
+
