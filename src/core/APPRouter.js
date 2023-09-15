@@ -115,7 +115,7 @@ class APPRouter {
       if (routeConfig.guard && !routeConfig.guard()) {
         this.handleError("AccessDenied", "Access Denied");
       } else {
-        this.app.renderView(routeConfig.view);
+        this.app.render_view(routeConfig.view);
       }
     } else {
       this.handleError("RouteNotFound", "Route Not Found");
